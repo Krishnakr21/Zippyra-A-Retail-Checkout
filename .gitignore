@@ -1,0 +1,43 @@
+# Environment & Secrets Files
+.env
+.env.local
+.env.*.local
+*.env
+env/*.json
+mobile/*/env/*.json
+mobile/customer_app/env/prod.json
+mobile/staff_app/env/prod.json
+*firebase-adminsdk*.json
+*adminsdk*.json
+
+# Node / Web
+node_modules/
+.next/
+dist/
+.turbo/
+pnpm-debug.log*
+
+# Flutter / Mobile
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+build/
+
+# Go / Backend
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# IDE & OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+.bin/
+*.log
+
