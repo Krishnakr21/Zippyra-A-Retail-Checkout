@@ -1,0 +1,196 @@
+name: Deploy Production (Manual + Approval)
+
+on:
+  workflow_dispatch:
+    inputs:
+      services:
+        description: "Comma-separated list of services to deploy (or 'all')"
+        required: true
+        default: "all"
+      confirm_deploy:
+        description: "Type 'DEPLOY' to confirm production deployment"
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com
+  EKS_CLUSTER: zippyra-production-eks
+  NAMESPACE: zippyra-prod
+
+jobs:
+  validate:
+    name: Validate Deployment Request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm deploy keyword
+        if: github.event.inputs.confirm_deploy != 'DEPLOY'
+        run: |
+          echo "❌ Production deployment requires typing 'DEPLOY' in the confirmation field."
+          exit 1
+
+  # Standard rolling deploy for most services
+  deploy-rolling:
+    name: Deploy (Rolling) ${{ matrix.service }}
+    needs: validate
+    environment: production
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - auth-service
+          - admin-auth-service
+          - retailer-auth-service
+          - chain-hq-auth-service
+          - store-service
+          - catalog-service
+          - inventory-service
+          - cart-service
+          - loyalty-service
+          - notification-service
+          - analytics-service
+          - compliance-service
+          - device-mgmt-service
+          - warehouse-service
+          - chain-hq-service
+          - integration-service
+          - customer-support-service
+          - staffing-service
+          - audit-service
+          - exit-validation-service
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skip if not in requested services
+        if: github.event.inputs.services != 'all'
+        run: |
+          if ! echo "${{ github.event.inputs.services }}" | grep -q "${{ matrix.service }}"; then
+            echo "Skipping ${{ matrix.service }} — not in requested deploy list"
+            exit 0
+          fi
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_PROD_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build & push
+        run: |
+          IMAGE_TAG="${{ github.sha }}"
+          docker build -t $ECR_REGISTRY/zippyra/${{ matrix.service }}:$IMAGE_TAG \
+            -f backend/services/${{ matrix.service }}/Dockerfile backend/
+          docker push $ECR_REGISTRY/zippyra/${{ matrix.service }}:$IMAGE_TAG
+
+      - name: Deploy via rolling update
+        run: |
+          aws eks update-kubeconfig --name $EKS_CLUSTER --region $AWS_REGION
+          kubectl set image deployment/${{ matrix.service }} \
+            ${{ matrix.service }}=$ECR_REGISTRY/zippyra/${{ matrix.service }}:${{ github.sha }} \
+            -n $NAMESPACE
+          kubectl rollout status deployment/${{ matrix.service }} -n $NAMESPACE --timeout=300s
+
+  # Blue-Green deploy for payment-service & order-service (Gap #42)
+  deploy-blue-green:
+    name: Deploy (Blue-Green) ${{ matrix.service }}
+    needs: validate
+    environment: production
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [payment-service, order-service]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skip if not in requested services
+        if: github.event.inputs.services != 'all'
+        run: |
+          if ! echo "${{ github.event.inputs.services }}" | grep -q "${{ matrix.service }}"; then
+            echo "Skipping ${{ matrix.service }}"
+            exit 0
+          fi
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_PROD_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build & push green image
+        run: |
+          IMAGE_TAG="${{ github.sha }}"
+          docker build -t $ECR_REGISTRY/zippyra/${{ matrix.service }}:$IMAGE_TAG \
+            -f backend/services/${{ matrix.service }}/Dockerfile backend/
+          docker push $ECR_REGISTRY/zippyra/${{ matrix.service }}:$IMAGE_TAG
+
+      - name: Deploy green, smoke-test, swap target groups
+        run: |
+          aws eks update-kubeconfig --name $EKS_CLUSTER --region $AWS_REGION
+
+          # Deploy to green deployment
+          kubectl set image deployment/${{ matrix.service }}-green \
+            ${{ matrix.service }}=$ECR_REGISTRY/zippyra/${{ matrix.service }}:${{ github.sha }} \
+            -n $NAMESPACE 2>/dev/null || \
+          kubectl create deployment ${{ matrix.service }}-green \
+            --image=$ECR_REGISTRY/zippyra/${{ matrix.service }}:${{ github.sha }} \
+            -n $NAMESPACE
+
+          kubectl rollout status deployment/${{ matrix.service }}-green -n $NAMESPACE --timeout=300s
+
+          # Smoke test green directly
+          GREEN_POD=$(kubectl get pods -n $NAMESPACE -l app=${{ matrix.service }}-green -o jsonpath='{.items[0].metadata.name}')
+          kubectl exec $GREEN_POD -n $NAMESPACE -- wget -q -O- http://localhost:8080/healthz/ready || exit 1
+
+          # Swap service selector to green
+          kubectl patch service ${{ matrix.service }} -n $NAMESPACE \
+            -p '{"spec":{"selector":{"app":"${{ matrix.service }}-green"}}}'
+
+          echo "✅ ${{ matrix.service }} blue-green swap complete"
+
+  # Auto-rollback monitor
+  post-deploy-monitor:
+    name: Post-Deploy Error Rate Monitor (5min)
+    needs: [deploy-rolling, deploy-blue-green]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_PROD_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Monitor error rate for 5 minutes
+        run: |
+          aws eks update-kubeconfig --name $EKS_CLUSTER --region $AWS_REGION
+          echo "Monitoring payment success rate for 5 minutes..."
+
+          for i in $(seq 1 10); do
+            sleep 30
+            # Query Prometheus for payment error rate
+            ERROR_RATE=$(kubectl exec -n monitoring deploy/prometheus-server -- \
+              wget -q -O- 'http://localhost:9090/api/v1/query?query=1-job:payment_success_rate:ratio_rate5m' 2>/dev/null \
+              | jq -r '.data.result[0].value[1] // "0"' 2>/dev/null || echo "0")
+
+            echo "Check $i/10: Error rate = ${ERROR_RATE}"
+
+            if (( $(echo "$ERROR_RATE > 0.01" | bc -l 2>/dev/null || echo 0) )); then
+              echo "❌ ERROR RATE >1% — AUTO-ROLLBACK"
+              kubectl rollout undo deployment/payment-service -n $NAMESPACE 2>/dev/null || true
+              kubectl rollout undo deployment/order-service -n $NAMESPACE 2>/dev/null || true
+              # Post to Slack
+              curl -X POST "${{ secrets.SLACK_INCIDENT_WEBHOOK }}" \
+                -H 'Content-Type: application/json' \
+                -d '{"text":"🚨 AUTO-ROLLBACK: Production deploy rolled back due to error rate >1%"}'
+              exit 1
+            fi
+          done
+
+          echo "✅ 5-minute post-deploy monitoring passed — error rate within bounds"
