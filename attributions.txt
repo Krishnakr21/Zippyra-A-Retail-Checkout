@@ -1,0 +1,1 @@
+Product data sourced from Open Food Facts (https://openfoodfacts.org), used under the Open Database License (ODbL). Prices and tax codes are illustrative, not sourced from Open Food Facts.

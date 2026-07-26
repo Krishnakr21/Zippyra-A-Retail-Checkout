@@ -1,0 +1,104 @@
+name: Nightly Staging Load Tests (k6)
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # Run nightly at 02:00 UTC
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: 'Target Environment'
+        required: true
+        default: 'staging'
+
+jobs:
+  run-k6-load-tests:
+    name: Run k6 Staging Load Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup k6 CLI
+        uses: grafana/setup-k6-action@v1
+
+      - name: Annotate Grafana (Start Load Test Window)
+        if: always()
+        run: |
+          if [ -n "$GRAFANA_URL" ] && [ -n "$GRAFANA_API_KEY" ]; then
+            curl -s -X POST "$GRAFANA_URL/api/annotations" \
+              -H "Authorization: Bearer $GRAFANA_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "text": "🚀 Nightly k6 Load Test Started",
+                "tags": ["load-test", "k6", "staging"]
+              }' || true
+          fi
+        env:
+          GRAFANA_URL: ${{ secrets.GRAFANA_URL }}
+          GRAFANA_API_KEY: ${{ secrets.GRAFANA_API_KEY }}
+
+      - name: Run Cart Scan Load Test
+        run: k6 run scripts/load-tests/scan-load.js
+        env:
+          API_BASE_URL: ${{ secrets.STAGING_API_BASE_URL || 'http://localhost:8080' }}
+
+      - name: Run Auth OTP Load Test
+        run: k6 run scripts/load-tests/auth-load.js
+        env:
+          API_BASE_URL: ${{ secrets.STAGING_API_BASE_URL || 'http://localhost:8080' }}
+
+      - name: Run Payment Idempotency Load Test
+        run: k6 run scripts/load-tests/payment-flow-load.js
+        env:
+          API_BASE_URL: ${{ secrets.STAGING_API_BASE_URL || 'http://localhost:8080' }}
+
+      - name: Run Exit Validation Race Load Test
+        run: k6 run scripts/load-tests/exit-validation-load.js
+        env:
+          API_BASE_URL: ${{ secrets.STAGING_API_BASE_URL || 'http://localhost:8080' }}
+
+      - name: Run Golden Path Load Test
+        run: k6 run scripts/load-tests/golden-path-load.js
+        env:
+          API_BASE_URL: ${{ secrets.STAGING_API_BASE_URL || 'http://localhost:8080' }}
+
+      - name: Annotate Grafana (End Load Test Window)
+        if: always()
+        run: |
+          if [ -n "$GRAFANA_URL" ] && [ -n "$GRAFANA_API_KEY" ]; then
+            curl -s -X POST "$GRAFANA_URL/api/annotations" \
+              -H "Authorization: Bearer $GRAFANA_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "text": "✅ Nightly k6 Load Test Completed",
+                "tags": ["load-test", "k6", "staging"]
+              }' || true
+          fi
+        env:
+          GRAFANA_URL: ${{ secrets.GRAFANA_URL }}
+          GRAFANA_API_KEY: ${{ secrets.GRAFANA_API_KEY }}
+
+      - name: Report Results to Slack
+        if: always()
+        run: |
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            STATUS="${{ job.status }}"
+            COLOR="danger"
+            if [ "$STATUS" = "success" ]; then COLOR="good"; fi
+
+            curl -s -X POST "$SLACK_WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "attachments": [
+                  {
+                    "color": "'"$COLOR"'",
+                    "title": "Nightly Staging Load Test Results: '"$STATUS"'",
+                    "text": "Ran 5 k6 load test suites (Cart Scan, Auth, Payment Idempotency, Exit Validation Race, Golden Path).",
+                    "footer": "Zippyra Load Testing Automation"
+                  }
+                ]
+              }' || true
+          fi
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
