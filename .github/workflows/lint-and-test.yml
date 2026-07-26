@@ -1,0 +1,208 @@
+name: Lint & Test (Every PR)
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: lint-test-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── Backend: Go Services ───────────────────────────────────────
+  backend-lint-test:
+    name: Backend Lint & Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: zippyra_user
+          POSTGRES_PASSWORD: zippyra_password
+          POSTGRES_DB: zippyra
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis-cart:
+        image: redis:7
+        ports: ["6379:6379"]
+      redis-session:
+        image: redis:7
+        ports: ["6380:6379"]
+      redis-sku:
+        image: redis:7
+        ports: ["6381:6379"]
+      redis-ratelimit:
+        image: redis:7
+        ports: ["6382:6379"]
+      redis-exit:
+        image: redis:7
+        ports: ["6383:6379"]
+      redis-realtime:
+        image: redis:7
+        ports: ["6384:6379"]
+      kafka:
+        image: confluentinc/cp-kafka:7.5.0
+        ports: ["9092:9092"]
+        env:
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+          KAFKA_PROCESS_ROLES: broker,controller
+          KAFKA_NODE_ID: 1
+          KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:29093
+          KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:29093
+          KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+          CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache-dependency-path: backend/go.sum
+
+      - name: Install Go tools
+        run: |
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: go vet
+        working-directory: backend
+        run: go vet ./...
+
+      - name: golangci-lint
+        working-directory: backend
+        run: golangci-lint run --timeout 5m ./...
+
+      - name: gosec (SAST — Gap #24)
+        working-directory: backend
+        run: gosec -quiet ./...
+
+      - name: govulncheck (Dependency CVEs — Gap #23)
+        working-directory: backend
+        run: govulncheck ./...
+
+      - name: Audit Context Timeouts (AST Analyzer)
+        run: go run scripts/audit-timeouts.go
+
+      - name: Audit PII Logging (AST Analyzer)
+        run: go run scripts/audit-pii-logs.go
+
+      - name: Audit Swag Annotation Coverage (AST Analyzer)
+        run: go run scripts/audit-swag-annotations.go
+
+      - name: Pact Contract Provider Verification
+        run: go run scripts/verify-pacts.go
+
+      - name: Audit Avro Schema Compatibility (AWS Glue Registry)
+        run: go run scripts/audit-avro-compatibility.go
+
+      - name: Audit Migration Script Idempotency (AST Analyzer)
+        run: go run scripts/audit-migration-idempotency.go
+
+      - name: Audit API V1 Struct Changes (Compatibility Nudge)
+        run: go run scripts/audit-v1-struct-changes.go
+
+      - name: Setup decK CLI
+        uses: kong/setup-deck@v1
+        with:
+          deck-version: '1.38.0'
+
+      - name: Validate Kong Declarative Config Schema
+        run: |
+          deck validate -s infra/kubernetes/kong/declarative-config/services.yaml
+          deck validate -s infra/kubernetes/kong/declarative-config/routes.yaml
+          deck validate -s infra/kubernetes/kong/declarative-config/plugins.yaml
+          deck validate -s infra/kubernetes/kong/declarative-config/consumers.yaml
+
+      - name: Run Go tests with coverage
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://zippyra_user:zippyra_password@localhost:5432/zippyra?sslmode=disable
+          REDIS_ADDR: localhost:6379
+          KAFKA_BROKERS: localhost:9092
+        run: |
+          go test -race -coverprofile=coverage.out -covermode=atomic ./...
+          go tool cover -func=coverage.out
+
+      - name: Coverage gate (priority services ≥70%)
+        working-directory: backend
+        run: |
+          for svc in auth-service payment-service exit-validation-service order-service; do
+            coverage=$(go tool cover -func=coverage.out | grep "services/$svc" | tail -1 | awk '{print $3}' | tr -d '%')
+            if [ -n "$coverage" ]; then
+              threshold=70
+              if (( $(echo "$coverage < $threshold" | bc -l) )); then
+                echo "❌ FAIL: $svc coverage $coverage% < $threshold%"
+                exit 1
+              else
+                echo "✅ PASS: $svc coverage $coverage% ≥ $threshold%"
+              fi
+            fi
+          done
+
+  # ─── Web: Next.js Apps ──────────────────────────────────────────
+  web-lint-test:
+    name: Web Lint, Test & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit Tests (Vitest/RTL)
+        run: pnpm test -- --run
+
+      - name: Build (catches missing env vars / type errors)
+        run: pnpm build
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Accessibility & E2E Gate (axe-core critical/serious severity check)
+        run: |
+          echo "Running axe-core accessibility scan across Playwright E2E specs..."
+          pnpm exec playwright test --reporter=line
+
+      - name: Semgrep scan
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: auto
+
+  # ─── Mobile: Flutter Apps ───────────────────────────────────────
+  mobile-lint-test:
+    name: Mobile Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.22.0"
+          channel: stable
+          cache: true
+
+      - uses: bluefireteam/melos-action@v3
+
+      - name: Analyze
+        run: melos run analyze
+
+      - name: Test
+        run: melos run test

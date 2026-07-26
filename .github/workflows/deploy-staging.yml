@@ -1,0 +1,100 @@
+name: Deploy Staging (on merge to main)
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com
+  EKS_CLUSTER: zippyra-staging-eks
+  NAMESPACE: zippyra-staging
+
+jobs:
+  detect-changes:
+    name: Detect Changed Services
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.filter.outputs.services }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - id: filter
+        run: |
+          CHANGED_SERVICES="[]"
+          SERVICES=(
+            auth-service admin-auth-service retailer-auth-service chain-hq-auth-service
+            store-service catalog-service inventory-service cart-service
+            payment-service order-service exit-validation-service loyalty-service
+            notification-service analytics-service compliance-service device-mgmt-service
+            warehouse-service chain-hq-service integration-service customer-support-service
+            staffing-service audit-service
+          )
+          for svc in "${SERVICES[@]}"; do
+            if git diff --name-only HEAD~1 HEAD | grep -q "backend/services/$svc/\|backend/shared/"; then
+              CHANGED_SERVICES=$(echo "$CHANGED_SERVICES" | jq --arg s "$svc" '. + [$s]')
+            fi
+          done
+          echo "services=$CHANGED_SERVICES" >> $GITHUB_OUTPUT
+
+  build-and-deploy:
+    name: Build & Deploy ${{ matrix.service }}
+    needs: detect-changes
+    if: needs.detect-changes.outputs.services != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build & push Docker image
+        run: |
+          IMAGE_TAG="${{ github.sha }}"
+          docker build -t $ECR_REGISTRY/zippyra/${{ matrix.service }}:$IMAGE_TAG \
+            -t $ECR_REGISTRY/zippyra/${{ matrix.service }}:latest \
+            -f backend/services/${{ matrix.service }}/Dockerfile \
+            backend/
+          docker push $ECR_REGISTRY/zippyra/${{ matrix.service }}:$IMAGE_TAG
+          docker push $ECR_REGISTRY/zippyra/${{ matrix.service }}:latest
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name $EKS_CLUSTER --region $AWS_REGION
+
+      - name: Rollout deployment
+        run: |
+          kubectl set image deployment/${{ matrix.service }} \
+            ${{ matrix.service }}=$ECR_REGISTRY/zippyra/${{ matrix.service }}:${{ github.sha }} \
+            -n $NAMESPACE
+          kubectl rollout status deployment/${{ matrix.service }} -n $NAMESPACE --timeout=300s
+
+  smoke-test:
+    name: Staging Smoke Test
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Run smoke tests
+        run: |
+          chmod +x scripts/smoke-test.sh
+          STAGING_URL=${{ secrets.STAGING_ALB_URL }} scripts/smoke-test.sh

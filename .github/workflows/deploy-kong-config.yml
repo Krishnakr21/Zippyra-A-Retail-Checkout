@@ -1,0 +1,47 @@
+name: Deploy Kong Declarative Config
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'infra/kubernetes/kong/declarative-config/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'infra/kubernetes/kong/declarative-config/**'
+
+jobs:
+  deck-validate-and-sync:
+    name: decK Validate, Diff & Sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup decK CLI
+        uses: kong/setup-deck@v1
+        with:
+          deck-version: '1.38.0'
+
+      - name: Validate Declarative Config Schema
+        run: |
+          deck validate -s infra/kubernetes/kong/declarative-config/services.yaml
+          deck validate -s infra/kubernetes/kong/declarative-config/routes.yaml
+          deck validate -s infra/kubernetes/kong/declarative-config/plugins.yaml
+          deck validate -s infra/kubernetes/kong/declarative-config/consumers.yaml
+
+      - name: Run decK Diff (Pull Requests)
+        if: github.event_name == 'pull_request'
+        env:
+          KONG_ADMIN_URL: ${{ secrets.STAGING_KONG_ADMIN_URL }}
+        run: |
+          echo "=== RUNNING DECK DIFF AGAINST STAGING KONG ADMIN API ==="
+          deck diff --kong-addr "${KONG_ADMIN_URL}" -s infra/kubernetes/kong/declarative-config/
+
+      - name: Run decK Sync (Main Branch Merge)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          KONG_ADMIN_URL: ${{ secrets.PRODUCTION_KONG_ADMIN_URL }}
+        run: |
+          echo "=== APPLYING DECK SYNC TO KONG GATEWAY ==="
+          deck sync --kong-addr "${KONG_ADMIN_URL}" -s infra/kubernetes/kong/declarative-config/

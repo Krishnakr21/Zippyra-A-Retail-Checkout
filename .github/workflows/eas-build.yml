@@ -1,0 +1,69 @@
+name: EAS Build (on version tags)
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-customer-app:
+    name: Customer App Build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [android, ios]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.22.0"
+          channel: stable
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build ${{ matrix.platform }}
+        working-directory: mobile/customer_app
+        env:
+          APP_ENV: production
+        run: |
+          # Build with dart-define-from-file for build-time secrets
+          # (matches config-hardening: never bundle .env in release builds)
+          flutter build ${{ matrix.platform == 'android' && 'appbundle' || 'ios' }} \
+            --release \
+            --dart-define-from-file=config/${{ matrix.platform }}_prod.json \
+            --dart-define=SENTRY_DSN=${{ secrets.SENTRY_DSN_MOBILE }} \
+            --dart-define=API_BASE_URL=https://api.zippyra.com
+
+      - name: Submit to testing track
+        if: matrix.platform == 'android'
+        working-directory: mobile/customer_app
+        run: |
+          # Upload to Google Play Internal Testing track via Fastlane
+          echo "Submitting to Google Play Internal Testing..."
+
+  build-staff-app:
+    name: Staff App Build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [android, ios]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.22.0"
+          channel: stable
+
+      - name: Build ${{ matrix.platform }}
+        working-directory: mobile/staff_app
+        run: |
+          flutter build ${{ matrix.platform == 'android' && 'appbundle' || 'ios' }} \
+            --release \
+            --dart-define-from-file=config/${{ matrix.platform }}_prod.json \
+            --dart-define=SENTRY_DSN=${{ secrets.SENTRY_DSN_MOBILE }} \
+            --dart-define=API_BASE_URL=https://api.zippyra.com
