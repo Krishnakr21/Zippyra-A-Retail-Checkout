@@ -1,0 +1,20 @@
+name: zippyra_mobile_workspace
+repository: https://github.com/zippyra/zippyra
+
+packages:
+  - mobile/packages/*
+  - mobile/customer_app
+  - mobile/staff_app
+
+scripts:
+  analyze:
+    exec: flutter analyze
+    description: Run flutter analyze across all packages.
+
+  test:
+    exec: flutter test
+    description: Run unit and widget tests.
+
+  build_runner:
+    exec: flutter pub run build_runner build --delete-conflicting-outputs
+    description: Run build_runner code generation.
