@@ -1,0 +1,103 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Zippyra Platform API Documentation (Internal)",
+    "description": "Aggregated OpenAPI specification for all 24 Zippyra backend microservices. Internal VPN access only.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/v1/auth/otp/send": {
+      "post": {
+        "description": "Send one-time password to user phone or email",
+        "responses": {
+          "200": {
+            "description": "OTP sent successfully"
+          }
+        },
+        "summary": "Send OTP",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/v1/auth/otp/verify": {
+      "post": {
+        "description": "Verify OTP code and obtain Access and Refresh tokens",
+        "responses": {
+          "200": {
+            "description": "JWT Auth Tokens Response"
+          }
+        },
+        "summary": "Verify OTP",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/v1/catalog/barcode/{barcode}": {
+      "get": {
+        "description": "Retrieve item pricing, tax rates, and availability by scanned barcode",
+        "responses": {
+          "200": {
+            "description": "SKU detail object"
+          }
+        },
+        "summary": "Get Product by Barcode",
+        "tags": [
+          "Catalog"
+        ]
+      }
+    },
+    "/v1/order/history": {
+      "get": {
+        "description": "Paginated order history list for authenticated user",
+        "responses": {
+          "200": {
+            "description": "Order history list"
+          }
+        },
+        "summary": "Get Order History",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/v1/payment/intent": {
+      "post": {
+        "description": "Create Razorpay payment order intent with Root/Play Integrity check",
+        "responses": {
+          "200": {
+            "description": "Payment Intent Response"
+          }
+        },
+        "summary": "Create Payment Intent",
+        "tags": [
+          "Payment"
+        ]
+      }
+    },
+    "/v1/support/feedback": {
+      "post": {
+        "description": "Submit NPS rating and feedback comment",
+        "responses": {
+          "201": {
+            "description": "Feedback submitted"
+          }
+        },
+        "summary": "Submit Support Feedback",
+        "tags": [
+          "Support"
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "bearerFormat": "JWT",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  }
+}
