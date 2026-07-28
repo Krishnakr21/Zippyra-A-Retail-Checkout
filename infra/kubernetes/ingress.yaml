@@ -1,0 +1,178 @@
+# ALB Ingress Controller — single ALB routing to all services by path
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: zippyra-main-ingress
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz/ready
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "15"
+    alb.ingress.kubernetes.io/group.name: zippyra-main
+spec:
+  rules:
+    - host: api.zippyra.com
+      http:
+        paths:
+          # Auth Services
+          - path: /v1/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 80
+          - path: /v1/admin-auth
+            pathType: Prefix
+            backend:
+              service:
+                name: admin-auth-service
+                port:
+                  number: 80
+          - path: /v1/retailer-auth
+            pathType: Prefix
+            backend:
+              service:
+                name: retailer-auth-service
+                port:
+                  number: 80
+          - path: /v1/chain-hq-auth
+            pathType: Prefix
+            backend:
+              service:
+                name: chain-hq-auth-service
+                port:
+                  number: 80
+
+          # Core Business Services
+          - path: /v1/store
+            pathType: Prefix
+            backend:
+              service:
+                name: store-service
+                port:
+                  number: 80
+          - path: /v1/catalog
+            pathType: Prefix
+            backend:
+              service:
+                name: catalog-service
+                port:
+                  number: 80
+          - path: /v1/inventory
+            pathType: Prefix
+            backend:
+              service:
+                name: inventory-service
+                port:
+                  number: 80
+          - path: /v1/cart
+            pathType: Prefix
+            backend:
+              service:
+                name: cart-service
+                port:
+                  number: 80
+          - path: /v1/payment
+            pathType: Prefix
+            backend:
+              service:
+                name: payment-service
+                port:
+                  number: 80
+          - path: /v1/order
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service
+                port:
+                  number: 80
+          - path: /v1/exit
+            pathType: Prefix
+            backend:
+              service:
+                name: exit-validation-service
+                port:
+                  number: 80
+          - path: /v1/loyalty
+            pathType: Prefix
+            backend:
+              service:
+                name: loyalty-service
+                port:
+                  number: 80
+
+          # Operations & Management Services
+          - path: /v1/notification
+            pathType: Prefix
+            backend:
+              service:
+                name: notification-service
+                port:
+                  number: 80
+          - path: /v1/analytics
+            pathType: Prefix
+            backend:
+              service:
+                name: analytics-service
+                port:
+                  number: 80
+          - path: /v1/compliance
+            pathType: Prefix
+            backend:
+              service:
+                name: compliance-service
+                port:
+                  number: 80
+          - path: /v1/device
+            pathType: Prefix
+            backend:
+              service:
+                name: device-mgmt-service
+                port:
+                  number: 80
+          - path: /v1/warehouse
+            pathType: Prefix
+            backend:
+              service:
+                name: warehouse-service
+                port:
+                  number: 80
+          - path: /v1/chain-hq
+            pathType: Prefix
+            backend:
+              service:
+                name: chain-hq-service
+                port:
+                  number: 80
+          - path: /v1/integration
+            pathType: Prefix
+            backend:
+              service:
+                name: integration-service
+                port:
+                  number: 80
+          - path: /v1/support
+            pathType: Prefix
+            backend:
+              service:
+                name: customer-support-service
+                port:
+                  number: 80
+          - path: /v1/staffing
+            pathType: Prefix
+            backend:
+              service:
+                name: staffing-service
+                port:
+                  number: 80
+          - path: /v1/audit
+            pathType: Prefix
+            backend:
+              service:
+                name: audit-service
+                port:
+                  number: 80

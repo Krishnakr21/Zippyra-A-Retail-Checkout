@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zippyra-pilot
+  labels:
+    app.kubernetes.io/part-of: zippyra
+    environment: pilot
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zippyra-staging
+  labels:
+    app.kubernetes.io/part-of: zippyra
+    environment: staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zippyra-prod
+  labels:
+    app.kubernetes.io/part-of: zippyra
+    environment: production
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    app.kubernetes.io/part-of: zippyra
+    purpose: observability
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kafka
+  labels:
+    app.kubernetes.io/part-of: zippyra
+    purpose: messaging

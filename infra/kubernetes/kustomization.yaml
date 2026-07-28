@@ -1,0 +1,46 @@
+# Kustomize configuration for Zippyra Kubernetes manifests
+# Usage: kubectl apply -k infra/kubernetes/
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: zippyra-pilot
+
+resources:
+  - namespaces.yaml
+  - ingress.yaml
+
+# All 22 service overlays generated from the base template
+# Each service's overlay patches the base template with service-specific values
+# (name, port, replicas, resource limits, env vars)
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+# -------------------------------------------------------------------
+# Service overlays — per-service patches on the base template
+# Services flagged with higher resource limits or replica counts
+# are annotated with the reason for the override.
+# -------------------------------------------------------------------
+
+# High-traffic / critical services: min 3 replicas
+# auth-service, payment-service, cart-service
+
+# Higher memory for outbox-relay / Redis-heavy workloads:
+# payment-service: 384Mi/768Mi (outbox relay + Razorpay webhook processing)
+# order-service: 384Mi/768Mi (outbox relay + GST IRN consumer)
+# cart-service: 320Mi/640Mi (Redis offer rule compiler + engine)
+
+# Blue-green deployment services (NOT rolling update):
+# payment-service, order-service — coupled to transactional outbox pattern
+# where two versions running simultaneously during schema-affecting deploy
+# is a real risk (Gap #42)
+
+configMapGenerator:
+  - name: shared-config
+    literals:
+      - APP_ENV=pilot
+      - AWS_REGION=ap-south-1
+      - LOG_LEVEL=info
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector.monitoring:4317
+      - SENTRY_ENVIRONMENT=pilot
