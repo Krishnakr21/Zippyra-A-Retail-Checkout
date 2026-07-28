@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "CartCheckoutInitiatedEvent",
+  "namespace": "com.zippyra.events.cart",
+  "doc": "Schema for cart.checkout_initiated event topic",
+  "fields": [
+    { "name": "cart_id", "type": "string", "doc": "Active cart ID" },
+    { "name": "user_id", "type": "string", "doc": "Customer user ID" },
+    { "name": "store_id", "type": "string", "doc": "Store ID" },
+    { "name": "subtotal_paise", "type": "long", "doc": "Cart subtotal in paise" },
+    { "name": "initiated_at", "type": "string", "doc": "ISO 8601 timestamp" }
+  ]
+}

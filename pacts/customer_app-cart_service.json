@@ -1,0 +1,53 @@
+{
+  "consumer": {
+    "name": "Customer App"
+  },
+  "provider": {
+    "name": "cart-service"
+  },
+  "interactions": [
+    {
+      "description": "a request to scan an item barcode into active cart",
+      "providerState": "active store session exists",
+      "request": {
+        "method": "POST",
+        "path": "/v1/cart/scan",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "barcode": "8901030300011",
+          "quantity": 1,
+          "store_id": "store-001"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "cart_id": "cart-001-xyz",
+          "store_id": "store-001",
+          "items": [
+            {
+              "barcode": "8901030300011",
+              "name": "Organic Whole Milk 1L",
+              "quantity": 1,
+              "unit_price_paise": 6500,
+              "line_subtotal_paise": 6500
+            }
+          ],
+          "subtotal_paise": 6500,
+          "tax_paise": 325,
+          "total_paise": 6825
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}

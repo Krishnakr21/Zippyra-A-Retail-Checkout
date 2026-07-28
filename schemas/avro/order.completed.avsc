@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "OrderCompletedEvent",
+  "namespace": "com.zippyra.events.order",
+  "doc": "Schema for order.completed event topic",
+  "fields": [
+    { "name": "order_id", "type": "string", "doc": "Order ID" },
+    { "name": "user_id", "type": "string", "doc": "Customer user ID" },
+    { "name": "store_id", "type": "string", "doc": "Store location ID" },
+    { "name": "total_paise", "type": "long", "doc": "Total order amount in paise" },
+    { "name": "item_count", "type": "int", "doc": "Total item quantity" },
+    { "name": "completed_at", "type": "string", "doc": "ISO 8601 completion timestamp" }
+  ]
+}

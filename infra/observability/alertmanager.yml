@@ -1,0 +1,46 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname', 'service', 'severity']
+  group_wait: 10s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'pagerduty-and-statuspage'
+  routes:
+    - match:
+        severity: p1
+      receiver: 'statuspage-sev1-webhook'
+    - match:
+        severity: p2
+      receiver: 'statuspage-sev2-webhook'
+
+receivers:
+  - name: 'pagerduty-and-statuspage'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_INTEGRATION_KEY}'
+        severity: '{{ .CommonLabels.severity }}'
+
+  - name: 'statuspage-sev1-webhook'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_INTEGRATION_KEY}'
+    webhook_configs:
+      # Component IDs mapped to status.zippyra.com:
+      # - Payment Processing: comp_payment_proc_01
+      # - Mobile App API: comp_mobile_api_02
+      # - Retailer Dashboard: comp_retailer_dash_03
+      # - Exit Gate / Anti-Theft System: comp_exit_gate_04
+      # - Customer Support: comp_support_05
+      - url: 'https://api.statuspage.io/v1/pages/${STATUSPAGE_PAGE_ID}/incidents'
+        send_resolved: true
+        http_config:
+          authorization:
+            credentials: '${STATUSPAGE_API_KEY}'
+
+  - name: 'statuspage-sev2-webhook'
+    webhook_configs:
+      - url: 'https://api.statuspage.io/v1/pages/${STATUSPAGE_PAGE_ID}/components'
+        send_resolved: true
+        http_config:
+          authorization:
+            credentials: '${STATUSPAGE_API_KEY}'

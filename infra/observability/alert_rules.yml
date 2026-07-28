@@ -1,0 +1,92 @@
+groups:
+  - name: zippyra_alerts
+    rules:
+      # Kafka consumer lag alerts
+      - alert: KafkaConsumerLagHighP1
+        expr: sum(kafka_consumergroup_lag{consumergroup=~"payment.*|order.*|exit.*"}) by (consumergroup, topic) > 1000
+        for: 2m
+        labels:
+          severity: p1
+          pagerduty: "true"
+        annotations:
+          summary: "P1: Critical Kafka consumer lag >1000 on {{ $labels.consumergroup }}"
+          description: "Consumer group {{ $labels.consumergroup }} on topic {{ $labels.topic }} lag is {{ $value }} (threshold >1000)."
+
+      - alert: KafkaConsumerLagP2
+        expr: sum(kafka_consumergroup_lag{consumergroup=~"analytics.*"}) by (consumergroup, topic) > 10000
+        for: 5m
+        labels:
+          severity: p2
+          pagerduty: "true"
+        annotations:
+          summary: "P2: Analytics Kafka consumer lag >10000 on {{ $labels.consumergroup }}"
+          description: "Analytics group {{ $labels.consumergroup }} lag is {{ $value }}."
+
+      # Redis memory alerts
+      - alert: RedisMemoryHigh
+        expr: (redis_memory_used_bytes / redis_memory_max_bytes) > 0.75
+        for: 5m
+        labels:
+          severity: p2
+          pagerduty: "true"
+        annotations:
+          summary: "Redis memory utilization >75% on {{ $labels.instance }}"
+          description: "Redis instance {{ $labels.instance }} memory usage is at {{ $value | humanizePercentage }}."
+
+      # Service error rate alert (>1% for 5 min)
+      - alert: ServiceHighErrorRate
+        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) by (service) / sum(rate(http_requests_total[5m])) by (service) > 0.01
+        for: 5m
+        labels:
+          severity: p1
+          pagerduty: "true"
+        annotations:
+          summary: "P1: Service {{ $labels.service }} error rate >1%"
+          description: "Service {{ $labels.service }} HTTP 5xx error rate is {{ $value | humanizePercentage }} over 5m."
+
+      # Dead Letter Queue alert (should be zero always)
+      - alert: DeadLetterQueueNotEmpty
+        expr: sum(kafka_topic_partition_current_offset{topic=~"dlq.*"}) > 0
+        for: 1m
+        labels:
+          severity: p1
+          pagerduty: "true"
+        annotations:
+          summary: "P1: Dead Letter Queue topic {{ $labels.topic }} has messages"
+          description: "DLQ topic {{ $labels.topic }} partition offset is {{ $value }}. Unhandled message dropped to DLQ."
+
+      # Device Management offline device spike alert
+      - alert: DeviceMgmtOfflineSpike
+        expr: rate(device_offline_events_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: p2
+          pagerduty: "true"
+        annotations:
+          summary: "P2: Offline store devices spiking"
+          description: "Device offline events rate is {{ $value }}/s over 5m."
+
+      # Exit Validation alarm spike alert
+      - alert: ExitGateAlarmSpike
+        expr: rate(exit_validation_alarms_total[5m]) > 5
+        for: 2m
+        labels:
+          severity: p1
+          pagerduty: "true"
+        annotations:
+          summary: "P1: Exit Gate Alarm Rate Spike"
+          description: "Exit gate validation alarm rate is {{ $value }}/s over 5m."
+
+  - name: zippyra_slo_recording_rules
+    rules:
+      - record: job:payment_success_rate:ratio_rate5m
+        expr: sum(rate(payment_transactions_total{status="SUCCESS"}[5m])) / sum(rate(payment_transactions_total[5m]))
+
+      - record: job:cart_scan_latency_p99:ms
+        expr: histogram_quantile(0.99, sum(rate(cart_scan_duration_seconds_bucket[5m])) by (le)) * 1000
+
+      - record: job:barcode_lookup_latency_p99:ms
+        expr: histogram_quantile(0.99, sum(rate(catalog_barcode_lookup_seconds_bucket[5m])) by (le)) * 1000
+
+      - record: job:exit_validation_latency_p99:ms
+        expr: histogram_quantile(0.99, sum(rate(exit_validation_duration_seconds_bucket[5m])) by (le)) * 1000

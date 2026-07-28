@@ -1,0 +1,44 @@
+{
+  "consumer": {
+    "name": "order-service"
+  },
+  "provider": {
+    "name": "compliance-service"
+  },
+  "interactions": [
+    {
+      "description": "a request to issue GST e-invoice IRN number",
+      "providerState": "valid B2B order with GSTIN details",
+      "request": {
+        "method": "POST",
+        "path": "/v1/compliance/einvoice/issue",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "order_id": "ord-001-xyz",
+          "total_amount_paise": 6825,
+          "gstin": "27AAACZ1234K1ZV"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "order_id": "ord-001-xyz",
+          "irn": "4e7c1d3f9b8a2e5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c",
+          "qr_code": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+          "signed_invoice": "e-invoice-signed-jwt-raw-string",
+          "status": "ISSUED"
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}

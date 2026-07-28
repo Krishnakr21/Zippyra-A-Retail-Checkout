@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "ExitValidatedEvent",
+  "namespace": "com.zippyra.events.exit",
+  "doc": "Schema for exit.validated event topic",
+  "fields": [
+    { "name": "exit_session_id", "type": "string", "doc": "Exit session ID" },
+    { "name": "order_id", "type": "string", "doc": "Order ID" },
+    { "name": "gate_id", "type": "string", "doc": "Exit gate hardware ID" },
+    { "name": "validated_at", "type": "string", "doc": "ISO 8601 validation timestamp" }
+  ]
+}
