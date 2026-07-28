@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "InventoryStockUpdatedEvent",
+  "namespace": "com.zippyra.events.inventory",
+  "doc": "Schema for inventory.stock_updated event topic",
+  "fields": [
+    { "name": "store_id", "type": "string", "doc": "Store ID" },
+    { "name": "barcode", "type": "string", "doc": "Item barcode" },
+    { "name": "previous_stock", "type": "int", "doc": "Previous stock quantity" },
+    { "name": "new_stock", "type": "int", "doc": "Updated stock quantity" },
+    { "name": "reason", "type": "string", "doc": "Reason for stock adjustment" },
+    { "name": "updated_at", "type": "string", "doc": "ISO 8601 timestamp" }
+  ]
+}

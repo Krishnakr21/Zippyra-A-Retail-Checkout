@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "PaymentConfirmedEvent",
+  "namespace": "com.zippyra.events.payment",
+  "doc": "Schema for payment.confirmed financial transaction event",
+  "fields": [
+    { "name": "payment_id", "type": "string", "doc": "Unique payment identifier" },
+    { "name": "order_id", "type": "string", "doc": "Associated order identifier" },
+    { "name": "user_id", "type": "string", "doc": "Customer user identifier" },
+    { "name": "amount_paise", "type": "long", "doc": "Amount paid in paise (INR)" },
+    { "name": "currency", "type": "string", "default": "INR", "doc": "ISO 4217 Currency code" },
+    { "name": "razorpay_payment_id", "type": "string", "doc": "Gateway payment transaction ID" },
+    { "name": "confirmed_at", "type": "string", "doc": "ISO 8601 UTC timestamp of payment confirmation" }
+  ]
+}

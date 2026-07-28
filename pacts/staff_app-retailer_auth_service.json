@@ -1,0 +1,42 @@
+{
+  "consumer": {
+    "name": "Staff App"
+  },
+  "provider": {
+    "name": "retailer-auth-service"
+  },
+  "interactions": [
+    {
+      "description": "a request for staff member PIN authentication",
+      "providerState": "active staff PIN exists for store",
+      "request": {
+        "method": "POST",
+        "path": "/v1/retailer-auth/login",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "store_id": "store-001",
+          "pin": "123456"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "access_token": "staff-jwt-token-xyz",
+          "staff_id": "stf-001",
+          "store_id": "store-001",
+          "role": "STORE_STAFF"
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}

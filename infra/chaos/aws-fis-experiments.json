@@ -1,0 +1,39 @@
+{
+  "experiments": [
+    {
+      "name": "kill-payment-service-pods-mid-checkout",
+      "description": "Terminates payment-service pods during active checkout traffic to verify outbox pattern & idempotency hold without double-charging",
+      "action": "aws:eks:terminate-nodegroup-instances",
+      "parameters": {
+        "clusterArn": "arn:aws:eks:ap-south-1:ACCOUNT_ID:cluster/zippyra-staging-eks",
+        "nodegroupName": "zippyra-staging-spot"
+      },
+      "targetResolution": {
+        "expectedBehavior": "No double charge occurs; transactional outbox pattern guarantees single-delivery on pod recovery."
+      }
+    },
+    {
+      "name": "inject-latency-cart-catalog-dependency",
+      "description": "Injects 500ms network latency between cart-service and catalog-service to verify P99 degraded bounds and ILIKE fallback",
+      "action": "aws:ssm:send-command/AWSFIS-Run-Network-Latency",
+      "parameters": {
+        "duration": "PT5M",
+        "delayMs": 500
+      },
+      "targetResolution": {
+        "expectedBehavior": "Cart service scan latency remains within degraded bounds (<200ms) with circuit breaking."
+      }
+    },
+    {
+      "name": "simulate-rds-multi-az-failover",
+      "description": "Simulates RDS Multi-AZ failover during active checkout traffic to verify <30s pgxpool reconnection",
+      "action": "aws:rds:reboot-db-instance",
+      "parameters": {
+        "forceFailover": true
+      },
+      "targetResolution": {
+        "expectedBehavior": "pgxpool automatically reconnects within 30 seconds without hanging connections."
+      }
+    }
+  ]
+}

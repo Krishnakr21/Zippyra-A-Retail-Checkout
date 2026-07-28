@@ -1,0 +1,153 @@
+{
+  "info": {
+    "name": "Zippyra Backend Platform APIs",
+    "description": "Postman Collection generated from Zippyra OpenAPI specification for developer onboarding and manual testing.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Send OTP",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "otp",
+            "send"
+          ],
+          "raw": "{{baseUrl}}/v1/auth/otp/send"
+        }
+      }
+    },
+    {
+      "name": "Verify OTP",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "otp",
+            "verify"
+          ],
+          "raw": "{{baseUrl}}/v1/auth/otp/verify"
+        }
+      }
+    },
+    {
+      "name": "Get Product by Barcode",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "catalog",
+            "barcode",
+            "8901030300011"
+          ],
+          "raw": "{{baseUrl}}/v1/catalog/barcode/8901030300011?store_id=store-001"
+        }
+      }
+    },
+    {
+      "name": "Get Order History",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "order",
+            "history"
+          ],
+          "raw": "{{baseUrl}}/v1/order/history"
+        }
+      }
+    },
+    {
+      "name": "Create Payment Intent",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "payment",
+            "intent"
+          ],
+          "raw": "{{baseUrl}}/v1/payment/intent"
+        }
+      }
+    },
+    {
+      "name": "Submit Feedback",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "support",
+            "feedback"
+          ],
+          "raw": "{{baseUrl}}/v1/support/feedback"
+        }
+      }
+    }
+  ]
+}

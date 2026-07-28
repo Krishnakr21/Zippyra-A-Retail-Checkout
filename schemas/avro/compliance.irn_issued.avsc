@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "ComplianceIRNIssuedEvent",
+  "namespace": "com.zippyra.events.compliance",
+  "doc": "Schema for compliance.irn_issued event topic",
+  "fields": [
+    { "name": "order_id", "type": "string", "doc": "Order ID" },
+    { "name": "irn", "type": "string", "doc": "GST Invoice Reference Number (64-char hash)" },
+    { "name": "gstin", "type": "string", "doc": "Merchant GSTIN" },
+    { "name": "signed_qr_code", "type": "string", "doc": "NIC Signed QR Code string" },
+    { "name": "issued_at", "type": "string", "doc": "ISO 8601 timestamp" }
+  ]
+}

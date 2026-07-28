@@ -1,0 +1,47 @@
+{
+  "consumer": {
+    "name": "Retailer Dashboard"
+  },
+  "provider": {
+    "name": "warehouse-service"
+  },
+  "interactions": [
+    {
+      "description": "a request to complete Goods Received Note (GRN)",
+      "providerState": "GRN in QC_PASSED status",
+      "request": {
+        "method": "POST",
+        "path": "/v1/warehouse/grn/complete",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "grn_id": "grn-001-xyz",
+          "accepted_items": [
+            {
+              "barcode": "8901030300011",
+              "accepted_qty": 50,
+              "rejected_qty": 0
+            }
+          ]
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "grn_id": "grn-001-xyz",
+          "status": "COMPLETED",
+          "message": "GRN completed and inventory updated successfully"
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}

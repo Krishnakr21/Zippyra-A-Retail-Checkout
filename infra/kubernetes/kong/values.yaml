@@ -1,0 +1,59 @@
+# Kong Gateway Helm Chart Values Configuration for Zippyra Platform
+# Target Region: AWS ap-south-1 (Mumbai)
+
+image:
+  repository: kong
+  tag: "3.6"
+
+deployment:
+  kong:
+    enabled: true
+    replicaCount: 3
+
+# Admin API: NEVER exposed outside cluster edge (No public ingress)
+admin:
+  enabled: true
+  type: ClusterIP
+  http:
+    enabled: true
+    servicePort: 8001
+  tls:
+    enabled: false
+
+# Proxy: Public LoadBalancer endpoint for api.zippyra.com
+proxy:
+  enabled: true
+  type: LoadBalancer
+  http:
+    enabled: true
+    servicePort: 80
+  tls:
+    enabled: true
+    servicePort: 443
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "external"
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+
+env:
+  database: "off" # DB-less declarative mode driven by decK
+  declarative_config: /usr/local/kong/declarative/kong.yml
+  log_level: info
+  plugins: "bundled,correlation-id,rate-limiting,jwt,request-size-limiting,cors,key-auth,response-transformer,ip-restriction,prometheus"
+  tracing_instrumentations: "all"
+  tracing_sampling_rate: "1.0"
+
+# Prometheus Exporter Enabled
+prometheus:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1024Mi

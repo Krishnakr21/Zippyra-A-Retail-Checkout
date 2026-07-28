@@ -1,0 +1,63 @@
+{
+  "consumer": {
+    "name": "Customer App"
+  },
+  "provider": {
+    "name": "payment-service"
+  },
+  "interactions": [
+    {
+      "description": "a request to initiate payment with Play Integrity token",
+      "providerState": "valid cart subtotal ready for checkout",
+      "request": {
+        "method": "POST",
+        "path": "/v1/payment/initiate",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "cart_id": "cart-001-xyz",
+          "amount_paise": 6825,
+          "integrity_token": "valid-play-integrity-token-xyz"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "payment_id": "pay-1001-abc",
+          "razorpay_order_id": "order_Rzp89102",
+          "amount_paise": 6825,
+          "currency": "INR",
+          "status": "INITIATED"
+        }
+      }
+    },
+    {
+      "description": "a request to query payment status",
+      "providerState": "payment initiated successfully",
+      "request": {
+        "method": "GET",
+        "path": "/v1/payment/status/pay-1001-abc"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "payment_id": "pay-1001-abc",
+          "status": "SUCCESS",
+          "razorpay_payment_id": "pay_RzpComplete99"
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "LoyaltyPointsEarnedEvent",
+  "namespace": "com.zippyra.events.loyalty",
+  "doc": "Schema for loyalty.points_earned event topic",
+  "fields": [
+    { "name": "user_id", "type": "string", "doc": "User ID" },
+    { "name": "order_id", "type": "string", "doc": "Order ID triggering points earn" },
+    { "name": "points_earned", "type": "int", "doc": "Quantity of points earned" },
+    { "name": "new_balance", "type": "int", "doc": "New total points balance" },
+    { "name": "tier", "type": "string", "doc": "Loyalty tier status" },
+    { "name": "earned_at", "type": "string", "doc": "ISO 8601 timestamp" }
+  ]
+}

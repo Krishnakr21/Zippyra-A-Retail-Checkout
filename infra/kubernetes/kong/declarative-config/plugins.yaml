@@ -1,0 +1,101 @@
+_format_version: "3.0"
+_transform: true
+
+plugins:
+  # 1. Global Correlation ID (X-Request-ID edge generation/propagation)
+  - name: correlation-id
+    config:
+      header_name: X-Request-ID
+      generator: uuid#counter
+      echo_downstream: true
+
+  # 2. Global Prometheus Exporter Metrics
+  - name: prometheus
+    config:
+      per_consumer: true
+      status_code_metrics: true
+      latency_metrics: true
+      bandwidth_metrics: true
+
+  # 3. Global Response Transformer (Strips internal debug headers)
+  - name: response-transformer
+    config:
+      remove:
+        headers:
+          - X-Internal-Debug
+          - X-Powered-By
+          - Server
+
+  # 4. Global Request Size Limiting (1MB default)
+  - name: request-size-limiting
+    config:
+      allowed_payload_size: 1
+
+  # 5. Route Override: Catalog CSV Import Request Size Limiting (25MB)
+  - name: request-size-limiting
+    route: catalog-import
+    config:
+      allowed_payload_size: 25
+
+  # 6. Edge Rate Limiting First-Line Defense (100 req/min per IP on OTP send endpoints)
+  - name: rate-limiting
+    route: auth-otp-send
+    config:
+      minute: 100
+      limit_by: ip
+      policy: local
+
+  - name: rate-limiting
+    route: retailer-auth-otp-send
+    config:
+      minute: 100
+      limit_by: ip
+      policy: local
+
+  # 7. Razorpay Webhook IP Allowlist (Gap #26 Defense-in-Depth)
+  - name: ip-restriction
+    route: payment-webhook-razorpay
+    config:
+      allow:
+        - 52.66.166.0/24
+        - 13.235.0.0/16
+        - 127.0.0.1/32
+
+  # 8. CORS Plugin for Trusted Next.js BFF Server Origins
+  - name: cors
+    config:
+      origins:
+        - "https://retailer.zippyra.com"
+        - "https://hq.zippyra.com"
+        - "http://localhost:3000"
+        - "http://localhost:3001"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      headers:
+        - Accept
+        - Authorization
+        - Content-Type
+        - X-Request-ID
+        - X-User-ID
+        - X-User-Role
+        - X-Store-ID
+      exposed_headers:
+        - X-Request-ID
+      max_age: 3600
+
+  # 9. Edge JWT Signature & Expiry Verification (Runs alongside backend JWT middleware)
+  - name: jwt
+    config:
+      uri_param_names:
+        - jwt
+      cookie_names:
+        - jwt
+      header_names:
+        - authorization
+      claims_to_verify:
+        - exp
+      key_claim_name: kid

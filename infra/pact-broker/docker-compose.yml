@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  pact-db:
+    image: postgres:16-alpine
+    container_name: zippyra-pact-db
+    environment:
+      POSTGRES_USER: pact_broker
+      POSTGRES_PASSWORD: pact_broker_password
+      POSTGRES_DB: pact_broker
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pact_broker"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pact-broker:
+    image: pactfoundation/pact-broker:latest
+    container_name: zippyra-pact-broker
+    ports:
+      - "9292:9292"
+    environment:
+      PACT_BROKER_DATABASE_ADAPTER: postgresql
+      PACT_BROKER_DATABASE_NET_RETRY_COUNT: 5
+      PACT_BROKER_DATABASE_USER: pact_broker
+      PACT_BROKER_DATABASE_PASSWORD: pact_broker_password
+      PACT_BROKER_DATABASE_HOST: pact-db
+      PACT_BROKER_DATABASE_NAME: pact_broker
+      PACT_BROKER_PORT: 9292
+    depends_on:
+      pact-db:
+        condition: service_healthy
