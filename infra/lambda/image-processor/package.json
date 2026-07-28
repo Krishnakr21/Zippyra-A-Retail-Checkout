@@ -1,0 +1,13 @@
+{
+  "name": "zippyra-image-processor",
+  "version": "1.0.0",
+  "description": "Zippyra S3 product image Lambda processor converting raw uploads to WebP thumbnails & full size images",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.test.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.500.0",
+    "sharp": "^0.33.2"
+  }
+}
