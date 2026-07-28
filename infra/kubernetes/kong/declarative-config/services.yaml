@@ -1,0 +1,118 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: auth-service
+    url: http://auth-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 10000
+
+  - name: store-service
+    url: http://store-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 10000
+
+  - name: catalog-service
+    url: http://catalog-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 30000
+
+  - name: cart-service
+    url: http://cart-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 10000
+
+  - name: payment-service
+    url: http://payment-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 15000
+
+  - name: order-service
+    url: http://order-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 10000
+
+  - name: exit-validation-service
+    url: http://exit-validation-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 5000
+
+  - name: notification-service
+    url: http://notification-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 10000
+
+  - name: loyalty-service
+    url: http://loyalty-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 10000
+
+  - name: inventory-service
+    url: http://inventory-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 10000
+
+  - name: warehouse-service
+    url: http://warehouse-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 10000
+
+  - name: analytics-service
+    url: http://analytics-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 15000
+
+  - name: support-service
+    url: http://support-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 10000
+
+  - name: retailer-auth-service
+    url: http://retailer-auth-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 10000
+
+  - name: admin-auth-service
+    url: http://admin-auth-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 10000
+
+  - name: chain-hq-service
+    url: http://chain-hq-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 10000
+
+  - name: compliance-service
+    url: http://compliance-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 15000
+
+  - name: audit-service
+    url: http://audit-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 10000
+
+  - name: device-mgmt-service
+    url: http://device-mgmt-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 10000
+
+  - name: integration-service
+    url: http://integration-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 15000
+
+  - name: qc-service
+    url: http://qc-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 10000
+
+  - name: transfer-service
+    url: http://transfer-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 10000
+
+  - name: admin-store-service
+    url: http://admin-store-service.zippyra-pilot.svc.cluster.local:80
+    connect_timeout: 5000
+    read_timeout: 10000

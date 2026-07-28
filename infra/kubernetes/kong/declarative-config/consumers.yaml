@@ -1,0 +1,18 @@
+_format_version: "3.0"
+_transform: true
+
+consumers:
+  - username: erp-partner-tally
+    custom_id: partner_tally_mumbai_01
+    keyauth_credentials:
+      - key: zippyra_key_tally_partner_sec_999
+
+  - username: erp-partner-busy
+    custom_id: partner_busy_mumbai_02
+    keyauth_credentials:
+      - key: zippyra_key_busy_partner_sec_888
+
+  - username: b2b-integration-partner
+    custom_id: partner_b2b_chain_hq
+    keyauth_credentials:
+      - key: zippyra_key_b2b_chain_hq_sec_777

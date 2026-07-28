@@ -1,0 +1,143 @@
+_format_version: "3.0"
+_transform: true
+
+# Explicit allowlist paths per service — internal paths (/v1/*/internal/*) are EXCLUDED
+routes:
+  # Auth Service
+  - name: auth-otp-send
+    service: auth-service
+    paths: ["/v1/auth/otp/send"]
+    strip_path: false
+    methods: ["POST"]
+
+  - name: auth-otp-verify
+    service: auth-service
+    paths: ["/v1/auth/otp/verify"]
+    strip_path: false
+    methods: ["POST"]
+
+  - name: auth-general
+    service: auth-service
+    paths: ["/v1/auth/oauth/google", "/v1/auth/refresh", "/v1/auth/logout", "/v1/auth/me", "/v1/auth/admin/users", "/.well-known/jwks.json"]
+    strip_path: false
+
+  # Retailer Auth Service
+  - name: retailer-auth-otp-send
+    service: retailer-auth-service
+    paths: ["/v1/retailer-auth/otp/send"]
+    strip_path: false
+    methods: ["POST"]
+
+  - name: retailer-auth-general
+    service: retailer-auth-service
+    paths: ["/v1/retailer-auth/otp/verify", "/v1/retailer-auth/refresh", "/v1/retailer-auth/shift/start", "/v1/retailer-auth/shift/end"]
+    strip_path: false
+
+  # Admin Auth Service
+  - name: admin-auth-general
+    service: admin-auth-service
+    paths: ["/v1/admin-auth/login", "/v1/admin-auth/totp/verify", "/v1/admin-auth/refresh"]
+    strip_path: false
+
+  # Core Business Services
+  - name: store-public
+    service: store-service
+    paths: ["/v1/store/bind", "/v1/store/list", "/v1/store/detail", "/v1/store/nearby", "/v1/store/self-manage"]
+    strip_path: false
+
+  - name: admin-store-public
+    service: admin-store-service
+    paths: ["/v1/admin-store/chains", "/v1/admin-store/stores"]
+    strip_path: false
+
+  - name: catalog-public
+    service: catalog-service
+    paths: ["/v1/catalog/items", "/v1/catalog/search", "/v1/catalog/categories"]
+    strip_path: false
+
+  - name: catalog-import
+    service: catalog-service
+    paths: ["/v1/catalog/import"]
+    strip_path: false
+    methods: ["POST"]
+
+  - name: cart-public
+    service: cart-service
+    paths: ["/v1/cart/items", "/v1/cart/checkout", "/v1/cart/offers"]
+    strip_path: false
+
+  - name: payment-public
+    service: payment-service
+    paths: ["/v1/payment/initiate", "/v1/payment/verify", "/v1/payment/capture"]
+    strip_path: false
+
+  - name: payment-webhook-razorpay
+    service: payment-service
+    paths: ["/v1/payment/webhook/razorpay"]
+    strip_path: false
+    methods: ["POST"]
+
+  - name: order-public
+    service: order-service
+    paths: ["/v1/order/create", "/v1/order/history", "/v1/order/detail"]
+    strip_path: false
+
+  - name: exit-validation-public
+    service: exit-validation-service
+    paths: ["/v1/exit/validate", "/v1/exit/status"]
+    strip_path: false
+
+  - name: notification-public
+    service: notification-service
+    paths: ["/v1/notification/device-tokens", "/v1/notification/preferences", "/v1/notification/inbox", "/v1/notification/admin/whatsapp-templates", "/v1/notification/admin/ops-alert-channels"]
+    strip_path: false
+
+  - name: loyalty-public
+    service: loyalty-service
+    paths: ["/v1/loyalty/balance", "/v1/loyalty/history", "/v1/loyalty/redeem"]
+    strip_path: false
+
+  - name: inventory-public
+    service: inventory-service
+    paths: ["/v1/inventory/stock", "/v1/inventory/adjustments"]
+    strip_path: false
+
+  - name: warehouse-public
+    service: warehouse-service
+    paths: ["/v1/warehouse/grn", "/v1/warehouse/transfer", "/v1/warehouse/po"]
+    strip_path: false
+
+  - name: analytics-public
+    service: analytics-service
+    paths: ["/v1/analytics/dashboard", "/v1/analytics/sales", "/v1/analytics/inventory"]
+    strip_path: false
+
+  - name: support-public
+    service: support-service
+    paths: ["/v1/support/tickets", "/v1/support/tickets/mine", "/v1/support/tickets/overdue"]
+    strip_path: false
+
+  - name: chain-hq-public
+    service: chain-hq-service
+    paths: ["/v1/chain-hq/offers", "/v1/chain-hq/stores", "/v1/chain-hq/audit-logs"]
+    strip_path: false
+
+  - name: compliance-public
+    service: compliance-service
+    paths: ["/v1/compliance/irn", "/v1/compliance/reports"]
+    strip_path: false
+
+  - name: audit-public
+    service: audit-service
+    paths: ["/v1/audit/logs"]
+    strip_path: false
+
+  - name: device-mgmt-public
+    service: device-mgmt-service
+    paths: ["/v1/device-mgmt/devices", "/v1/device-mgmt/telemetry"]
+    strip_path: false
+
+  - name: integration-public
+    service: integration-service
+    paths: ["/v1/integration/connections", "/v1/integration/agent/poll", "/v1/integration/agent/ack", "/v1/integration/webhook"]
+    strip_path: false
