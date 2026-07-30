@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS device_alerts;
+DROP TABLE IF EXISTS devices;
