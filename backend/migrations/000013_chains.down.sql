@@ -1,0 +1,2 @@
+ALTER TABLE stores DROP CONSTRAINT IF EXISTS fk_stores_chain;
+DROP TABLE IF EXISTS chains;

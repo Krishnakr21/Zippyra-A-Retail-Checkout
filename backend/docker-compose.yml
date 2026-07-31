@@ -1,0 +1,3 @@
+# Local backend compose override
+version: '3.8'
+services: {}

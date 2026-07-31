@@ -1,0 +1,3 @@
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS razorpay_account_id VARCHAR(100);
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS razorpay_kyc_status VARCHAR(50);
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS payment_setup_note TEXT;
