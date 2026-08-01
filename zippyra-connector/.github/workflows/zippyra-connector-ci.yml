@@ -1,0 +1,41 @@
+name: Zippyra Connector CI
+
+on:
+  push:
+    paths:
+      - 'zippyra-connector/**'
+      - '.github/workflows/zippyra-connector-ci.yml'
+  pull_request:
+    paths:
+      - 'zippyra-connector/**'
+
+jobs:
+  build-and-test:
+    name: Build and Test Connector
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Run Unit Tests
+        run: |
+          cd zippyra-connector
+          go test -v ./...
+
+      - name: Cross-Compile Binary Targets
+        run: |
+          cd zippyra-connector
+          make all
+
+      - name: Verify Binary Output
+        run: |
+          test -f zippyra-connector/bin/zippyra-connector.exe
+          test -f zippyra-connector/bin/zippyra-connector-linux
+          test -f zippyra-connector/bin/zippyra-connector-darwin
+          echo "All cross-compiled static binaries generated successfully."

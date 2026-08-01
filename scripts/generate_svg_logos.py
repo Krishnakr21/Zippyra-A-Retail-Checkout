@@ -1,0 +1,132 @@
+import os
+
+def create_svg(filename, width, height, icon_only=False, app_title="", app_subtitle=""):
+    view_box = f"0 0 {width} {height}"
+    
+    # SVG Definitions
+    defs = """
+  <defs>
+    <!-- Bag Main Gradient -->
+    <linearGradient id="bagGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#09356E" />
+      <stop offset="40%" stop-color="#0A4D9E" />
+      <stop offset="85%" stop-color="#0066CC" />
+      <stop offset="100%" stop-color="#0088FF" />
+    </linearGradient>
+
+    <!-- Bag Right Highlight/Shine -->
+    <linearGradient id="bagHighlight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00D2FF" stop-opacity="0" />
+      <stop offset="100%" stop-color="#00E5FF" stop-opacity="0.4" />
+    </linearGradient>
+
+    <!-- Lightning Bolt Primary Gradient -->
+    <linearGradient id="boltGradient" x1="30%" y1="0%" x2="70%" y2="100%">
+      <stop offset="0%" stop-color="#FFBA00" />
+      <stop offset="45%" stop-color="#FF8800" />
+      <stop offset="100%" stop-color="#FF4500" />
+    </linearGradient>
+
+    <!-- Bolt Shadow for 3D effect -->
+    <filter id="dropShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="#001838" flood-opacity="0.35" />
+    </filter>
+
+    <filter id="boltShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="1" dy="3" stdDeviation="2" flood-color="#802000" flood-opacity="0.4" />
+    </filter>
+  </defs>
+"""
+
+    if icon_only:
+        # Center icon in 160x160 canvas
+        icon_group = """
+  <g transform="translate(10, 8) scale(1.05)" filter="url(#dropShadow)">
+    <!-- Bag Handles -->
+    <path d="M 50 44 C 50 18, 70 18, 70 44" stroke="#0A458C" stroke-width="5.5" stroke-linecap="round" fill="none" />
+    <path d="M 50 44 C 50 18, 70 18, 70 44" stroke="#0088FF" stroke-width="2.5" stroke-linecap="round" fill="none" />
+    
+    <path d="M 76 44 C 76 18, 96 18, 96 44" stroke="#093C7A" stroke-width="5.5" stroke-linecap="round" fill="none" />
+    <path d="M 76 44 C 76 18, 96 18, 96 44" stroke="#0099FF" stroke-width="2.5" stroke-linecap="round" fill="none" />
+
+    <!-- Shopping Bag Body -->
+    <path d="M 36 44 L 110 44 C 114 44 116 46 117 50 L 127 124 C 128 130 123 135 117 135 L 29 135 C 23 135 18 130 19 124 L 29 50 C 30 46 32 44 36 44 Z" fill="url(#bagGradient)" />
+    
+    <!-- Bag Right Glare -->
+    <path d="M 80 44 L 110 44 C 114 44 116 46 117 50 L 127 124 C 128 130 123 135 117 135 L 85 135 Z" fill="url(#bagHighlight)" />
+
+    <!-- Handle Rivets -->
+    <circle cx="50" cy="51" r="2.8" fill="#FFFFFF" opacity="0.9" />
+    <circle cx="70" cy="51" r="2.8" fill="#FFFFFF" opacity="0.9" />
+    <circle cx="76" cy="51" r="2.8" fill="#FFFFFF" opacity="0.9" />
+    <circle cx="96" cy="51" r="2.8" fill="#FFFFFF" opacity="0.9" />
+
+    <!-- Lightning Bolt -->
+    <path d="M 86 28 L 56 78 L 76 78 L 42 144 L 98 70 L 74 70 Z" fill="url(#boltGradient)" filter="url(#boltShadow)" />
+    <!-- Bolt inner bevel light line -->
+    <path d="M 86 28 L 56 78 L 76 78 L 42 144 L 46 135 L 75 75 L 59 75 Z" fill="#FFE57F" opacity="0.4" />
+  </g>
+"""
+        svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="{view_box}" width="{width}" height="{height}">
+{defs}
+{icon_group}
+</svg>"""
+    else:
+        # Full Logo with wordmark (Horizontal)
+        subtitle_xml = ""
+        if app_subtitle:
+            subtitle_xml = f"""
+    <!-- Subtitle Badge / Text -->
+    <text x="162" y="112" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="800" letter-spacing="3" fill="#64748B">{app_subtitle.upper()}</text>
+"""
+        
+        svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="{view_box}" width="{width}" height="{height}">
+{defs}
+  <g transform="translate(10, 10)" filter="url(#dropShadow)">
+    <!-- Bag Handles -->
+    <path d="M 50 44 C 50 18, 70 18, 70 44" stroke="#0A458C" stroke-width="5.5" stroke-linecap="round" fill="none" />
+    <path d="M 50 44 C 50 18, 70 18, 70 44" stroke="#0088FF" stroke-width="2.5" stroke-linecap="round" fill="none" />
+    
+    <path d="M 76 44 C 76 18, 96 18, 96 44" stroke="#093C7A" stroke-width="5.5" stroke-linecap="round" fill="none" />
+    <path d="M 76 44 C 76 18, 96 18, 96 44" stroke="#0099FF" stroke-width="2.5" stroke-linecap="round" fill="none" />
+
+    <!-- Shopping Bag Body -->
+    <path d="M 36 44 L 110 44 C 114 44 116 46 117 50 L 127 124 C 128 130 123 135 117 135 L 29 135 C 23 135 18 130 19 124 L 29 50 C 30 46 32 44 36 44 Z" fill="url(#bagGradient)" />
+    
+    <!-- Bag Right Glare -->
+    <path d="M 80 44 L 110 44 C 114 44 116 46 117 50 L 127 124 C 128 130 123 135 117 135 L 85 135 Z" fill="url(#bagHighlight)" />
+
+    <!-- Handle Rivets -->
+    <circle cx="50" cy="51" r="2.8" fill="#FFFFFF" opacity="0.9" />
+    <circle cx="70" cy="51" r="2.8" fill="#FFFFFF" opacity="0.9" />
+    <circle cx="76" cy="51" r="2.8" fill="#FFFFFF" opacity="0.9" />
+    <circle cx="96" cy="51" r="2.8" fill="#FFFFFF" opacity="0.9" />
+
+    <!-- Lightning Bolt -->
+    <path d="M 86 28 L 56 78 L 76 78 L 42 144 L 98 70 L 74 70 Z" fill="url(#boltGradient)" filter="url(#boltShadow)" />
+    <!-- Bolt inner bevel light line -->
+    <path d="M 86 28 L 56 78 L 76 78 L 42 144 L 46 135 L 75 75 L 59 75 Z" fill="#FFE57F" opacity="0.4" />
+  </g>
+
+  <!-- Wordmark "Zippyra" -->
+  <g transform="translate(160, 20)">
+    <!-- "Zippy" in Deep Blue -->
+    <text x="0" y="85" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="78" font-weight="900" fill="#0A3B7B" letter-spacing="-1.5">Zippy</text>
+    <!-- "ra" in Italic Orange -->
+    <text x="210" y="85" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="78" font-weight="900" font-style="italic" fill="#FF6B00" letter-spacing="-1">ra</text>
+{subtitle_xml}
+  </g>
+</svg>"""
+
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(svg_content)
+    print(f"Generated: {filename}")
+
+# Generate all brand SVGs
+os.makedirs("docs/assets", exist_ok=True)
+create_svg("docs/assets/zippyra_logo.svg", 480, 160, icon_only=False)
+create_svg("docs/assets/zippyra_icon.svg", 160, 160, icon_only=True)
+create_svg("docs/assets/zippyra_staff_logo.svg", 540, 160, icon_only=False, app_subtitle="STAFF")
+create_svg("docs/assets/zippyra_admin_logo.svg", 540, 160, icon_only=False, app_subtitle="ADMIN")
+create_svg("docs/assets/zippyra_retailer_logo.svg", 560, 160, icon_only=False, app_subtitle="RETAILER")
+create_svg("docs/assets/zippyra_hq_logo.svg", 500, 160, icon_only=False, app_subtitle="HQ")
