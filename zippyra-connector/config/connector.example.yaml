@@ -1,0 +1,9 @@
+# Zippyra On-Premise ERP Connector Configuration
+connection_id: "conn_live_store_101"
+agent_api_key: "zip_agent_sec_987654321"
+webhook_secret: "whsec_super_secret_hmac_key_999"
+zippyra_api_base_url: "https://api.zippyra.com"
+erp_type: "TALLY" # Options: TALLY | BUSY
+erp_local_endpoint: "http://127.0.0.1:9000"
+poll_interval_seconds: 60
+status_server_port: 8085
