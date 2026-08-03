@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "noEmit": true,
+    "incremental": true,
+    "module": "esnext",
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@zippyra/types": ["../../packages/types/src/index.ts"],
+      "@zippyra/api-client": ["../../packages/api-client/src/index.ts"],
+      "@zippyra/ui": ["../../packages/ui/src/index.ts"],
+      "@zippyra/auth": ["../../packages/auth/src/index.ts"],
+      "@zippyra/hooks": ["../../packages/hooks/src/index.ts"],
+      "react": ["node_modules/@types/react"],
+      "react-dom": ["node_modules/@types/react-dom"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "e2e",
+    "../../e2e-a11y-helper.ts"
+  ]
+}
