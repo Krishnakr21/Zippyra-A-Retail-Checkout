@@ -1,0 +1,13 @@
+{
+  "name": "@zippyra/ui",
+  "version": "1.0.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "dependencies": {
+    "recharts": "^3.10.1"
+  }
+}
