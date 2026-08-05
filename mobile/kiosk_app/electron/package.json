@@ -1,0 +1,36 @@
+{
+  "name": "zippyra-kiosk-electron",
+  "version": "1.0.0",
+  "description": "Zippyra Unattended Self-Checkout Kiosk Terminal Electron Shell",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --dir"
+  },
+  "dependencies": {
+    "electron": "^29.1.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.12.0"
+  },
+  "build": {
+    "appId": "com.zippyra.kiosk",
+    "productName": "Zippyra Kiosk Terminal",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "kiosk_config.json",
+      "build/web/**/*"
+    ],
+    "linux": {
+      "target": ["AppImage", "deb"]
+    },
+    "win": {
+      "target": ["nsis"]
+    }
+  }
+}

@@ -1,0 +1,24 @@
+name: zippyra_core
+description: Shared Flutter core package for Zippyra applications.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  dio: ^5.4.0
+  flutter_secure_storage: ^9.0.0
+  flutter_dotenv: ^5.1.0
+  drift: ^2.14.0
+  sqflite: ^2.3.0
+  path: ^1.9.0
+  uuid: ^4.3.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
