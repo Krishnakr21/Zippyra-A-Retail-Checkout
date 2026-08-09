@@ -1,0 +1,9 @@
+{
+  "store_id": "STORE-BLR-001",
+  "device_id": "KIOSK-TERM-BLR-01",
+  "pairing_code": "849204",
+  "api_base_url": "https://api.zippyra.com",
+  "idle_timeout_seconds": 120,
+  "kiosk_mode": true,
+  "auto_restart_on_crash": true
+}
