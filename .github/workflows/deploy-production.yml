@@ -63,7 +63,7 @@ jobs:
           - exit-validation-service
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Skip if not in requested services
         if: github.event.inputs.services != 'all'
@@ -106,7 +106,7 @@ jobs:
         service: [payment-service, order-service]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Skip if not in requested services
         if: github.event.inputs.services != 'all'
@@ -160,7 +160,7 @@ jobs:
     needs: [deploy-rolling, deploy-blue-green]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
