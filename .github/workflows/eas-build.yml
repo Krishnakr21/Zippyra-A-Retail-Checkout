@@ -20,7 +20,7 @@ jobs:
           flutter-version: "3.22.0"
           channel: stable
 
-      - uses: expo/expo-github-action@v8
+      - uses: expo/expo-github-action@v9
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
