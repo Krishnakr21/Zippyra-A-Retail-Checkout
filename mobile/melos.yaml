@@ -1,0 +1,6 @@
+name: zippyra_mobile
+packages:
+  - packages/*
+  - customer_app
+  - staff_app
+  - kiosk_app
